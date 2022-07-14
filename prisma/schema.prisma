@@ -90,7 +90,7 @@ model Balance {
   ticket Ticket @relation (fields: [ticketId], references: [id])
   ticketId Int @unique
   name String
-  balance Int
+  balance String
   amount Int
   preparedBy String
 }
