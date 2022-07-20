@@ -76,3 +76,15 @@ export const updateOne = async (req: Request, res: Response) => {
         await prisma.$disconnect()
     }
 }
+
+export const updateHardcopy = async (req: Request, res: Response) => {
+    try {
+        const payload = req.body
+        const ticket = await updateTicket(payload)
+        res.status(200).send(ticket)
+    } catch(e: any) {
+        res.status(500).send(e.message)
+    } finally {
+        await prisma.$disconnect()
+    }
+}

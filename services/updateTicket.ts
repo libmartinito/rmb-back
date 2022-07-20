@@ -4,21 +4,70 @@
 
 import { PrismaClient } from "@prisma/client"
 import { UpdatePayload } from "../types"
+import * as dotenv from "dotenv"
+import nodemailer from "nodemailer"
+import { response } from "express"
 
+dotenv.config()
 /**
  * Definte the service
  */
 
 const prisma = new PrismaClient()
 
+const sendEmail = (toEmail: string, crf: number) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.EMAIL_PW,
+        }
+    })
+
+    const message = {
+        body: "This is to let you know that you have a week to submit the hardcopy of receipts/prescriptions for the ticket shown above."
+    }
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: toEmail,
+        subject: `Reimbursement ${crf} Update`,
+        html: message.body 
+    }
+
+    transporter.sendMail(mailOptions, function (err, info) {
+        if (err) {
+           console.log(err) 
+        } else {
+            response.json(info)
+        }
+    })
+}
+
 export const updateTicket = async (payload: UpdatePayload) => {
+    const userId = payload.userId
     const ticketId = payload.ticketId
+    const crf = payload.crf
+    const email = payload.email
     const actionBy = payload.actionBy
     const status = payload.status
     const reimbursements = payload.reimbursements
     const remarks = payload.remarks
     const balance = payload.balance
+    const updatedBalance = payload.updatedBalance
     
+    // Update user balance
+    if (updatedBalance) {
+        await prisma.user.update({
+            where: {
+                id: userId 
+            },
+            data: {
+                balance: updatedBalance
+            }
+        })
+    }
+
     // Update base ticket actionby and status
     await prisma.ticket.update({
         where: {
@@ -29,6 +78,11 @@ export const updateTicket = async (payload: UpdatePayload) => {
             status: status
         }
     })
+
+    // Send email if the ticket requires action from user
+    if (actionBy === 'user') {
+        sendEmail(email, crf)
+    }
     
     // Update changes to reimbursements
     for (let i = 0; i < reimbursements.length; i++) {
@@ -60,7 +114,7 @@ export const updateTicket = async (payload: UpdatePayload) => {
             data: {
                 ticket: { connect: { id: balance.ticketId} },
                 name: balance.name,
-                balance: balance.balance,
+                balanceDate: balance.balanceDate,
                 amount: balance.amount,
                 preparedBy: balance.preparedBy
             }

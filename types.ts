@@ -9,6 +9,7 @@ export interface BaseTicket {
     department: string,
     actionBy: string,
     status: string,
+    hasHardcopy: boolean
 }
 
 export interface ResTicket extends BaseTicket {
@@ -32,13 +33,15 @@ export interface Ticket extends BaseTicket {
     reimbursements: Reimbursement[],
     remarks: Remark[],
     images: Image[],
-    balance: null | Balance
+    balance: null | Balance,
 }
 
 export interface UpdatedTicket extends Ticket {
     creatorInfo: {
         firstName: string,
-        lastName: string
+        lastName: string,
+        balance: null | number,
+        email: string
     }
 }
 
@@ -47,6 +50,7 @@ export interface Reimbursement {
     createdAt: Date,
     updatedAt: Date,
     ticketId: null | number,
+    orNum: number,
     expenseDate: string,
     expenseAmount: number,
     expenseNature: string,
@@ -75,7 +79,7 @@ export interface Balance {
     createdAt: Date,
     updatedAt: Date,
     name: string,
-    balance: string,
+    balanceDate: string,
     amount: number,
     preparedBy: string
 }
@@ -87,10 +91,21 @@ export interface GetClientPayload {
 }
 
 export interface UpdatePayload {
+    userId: number,
     ticketId: string,
+    crf: number,
+    email: string,
     actionBy: string,
     status: string,
     reimbursements: Reimbursement[],
     remarks: Remark[],
-    balance: null | Balance
+    balance: null | Balance,
+    updatedBalance: null | number
+}
+
+export interface UserUpdatePayload {
+    ticketId: string,
+    hasHardcopy: boolean,
+    actionBy: string,
+    status: string
 }

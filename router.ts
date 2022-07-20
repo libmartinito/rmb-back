@@ -29,8 +29,10 @@ router.get("/api/tickets/:role/:id/:status", auth, ticketsController.getClient)
 router.get("/api/tickets", auth, ticketsController.getAll)
 // Route for getting a ticket
 router.get("/api/tickets/:ticketcrf", auth, ticketsController.getOne)
-// Route for updating a ticket
-router.patch("/api/tickets/:ticketcrf", auth, ticketsController.updateOne)
+// Route for an admin updating a ticket
+router.patch("/api/tickets/admin/:ticketcrf", auth, ticketsController.updateOne)
+// Route for a user updating a ticket
+router.patch("/api/tickets/user/:ticketcrf", auth, ticketsController.updateHardcopy)
 // Route for uploading images
 router.post("/api/upload", auth, uploadsController.multipleUpload)
 

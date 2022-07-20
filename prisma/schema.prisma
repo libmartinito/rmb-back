@@ -22,6 +22,7 @@ model User {
   password String
   tickets Ticket[]
   tokens Token[]
+  balance Int?
 }
 
 model Token {
@@ -45,6 +46,7 @@ model Ticket {
   department String
   actionBy String
   status String
+  hasHardcopy Boolean
   reimbursements Reimbursement[]
   remarks Remark[]
   images Image[]
@@ -57,6 +59,7 @@ model Reimbursement {
   updatedAt DateTime @updatedAt
   ticket Ticket @relation(fields: [ticketId], references: [id])
   ticketId Int
+  orNum Int
   expenseDate String
   expenseAmount Int 
   expenseNature String
@@ -90,7 +93,7 @@ model Balance {
   ticket Ticket @relation (fields: [ticketId], references: [id])
   ticketId Int @unique
   name String
-  balance String
+  balanceDate String
   amount Int
   preparedBy String
 }

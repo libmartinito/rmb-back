@@ -28,6 +28,7 @@ const createBaseTicket = async (payload: PayloadTicket) => {
             department: payload.department,
             actionBy: payload.actionBy,
             status: payload.status,
+            hasHardcopy: payload.hasHardcopy
         }
     })
 
@@ -45,6 +46,7 @@ const createReimbs = async (payload: PayloadTicket, ticket: ResTicket) => {
                 expenseDate: payload.reimbursements[i].expenseDate,
                 expenseAmount: payload.reimbursements[i].expenseAmount,
                 expenseNature: payload.reimbursements[i].expenseNature,
+                orNum: payload.reimbursements[i].orNum,
                 approved: payload.reimbursements[i].approved
             }
         })
@@ -92,7 +94,8 @@ export const createTicket = async (payload: PayloadTicket) => {
             reimbursements: reimbursements,
             remarks: [],
             images: images,
-            balance: null
+            balance: null,
+            hasHardcopy: ticket.hasHardcopy 
         }
         
         await prisma.$disconnect()

@@ -23,7 +23,9 @@ export const getUpdatedTickets = async (tickets: Ticket[]) => {
             },
             select: {
                 firstName: true,
-                lastName: true
+                lastName: true,
+                balance: true,
+                email: true
             }
         })
         
@@ -43,6 +45,7 @@ export const getUpdatedTickets = async (tickets: Ticket[]) => {
                 remarks: tickets[i].remarks,
                 images: tickets[i].images,
                 balance: tickets[i].balance,
+                hasHardcopy: tickets[i].hasHardcopy,
                 creatorInfo: creatorInfo
             }
 
