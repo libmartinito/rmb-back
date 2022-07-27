@@ -94,6 +94,7 @@ export interface UpdatePayload {
     userId: number,
     ticketId: string,
     crf: number,
+    department: string,
     email: string,
     actionBy: string,
     status: string,
