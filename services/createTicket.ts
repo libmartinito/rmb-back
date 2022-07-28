@@ -10,7 +10,10 @@ import {
     Reimbursement,
     Image
 } from "../types";
+import nodemailer from "nodemailer"
+import * as dotenv from "dotenv"
 
+dotenv.config()
 /**
  * Define Service
  */
@@ -38,7 +41,7 @@ const createBaseTicket = async (payload: PayloadTicket) => {
 // Create the reimbursements
 const createReimbs = async (payload: PayloadTicket, ticket: ResTicket) => {
     let reimbursements: Reimbursement[] = []
-    
+
     for (let i = 0; i < payload.reimbursements.length; i++) {
         const reimbursement = await prisma.reimbursement.create({
             data: {
@@ -52,7 +55,7 @@ const createReimbs = async (payload: PayloadTicket, ticket: ResTicket) => {
         })
         reimbursements.push(reimbursement)
     }
-    
+
     return reimbursements
 }
 
@@ -73,12 +76,42 @@ const createImages = async (payload: PayloadTicket, ticket: ResTicket) => {
     return images
 }
 
-// Respond with the full ticket
-export const createTicket = async (payload: PayloadTicket) => { 
+// Send an email
+const sendEmail = (crf: number, email: string) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.EMAIL_PW,
+        }
+    })
+
+    const message = {
+        body: "This is to let you know that your ticket is now under review by the director."
+    }
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: `Reimbursement ${crf} Update`,
+        html: message.body
+    }
+
+    transporter.sendMail(mailOptions, function (err, info) {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(info)
+        }
+    })
+}
+
+// Respond with the full ticket and send email update
+export const createTicket = async (payload: PayloadTicket) => {
     const ticket = await createBaseTicket(payload)
     const reimbursements = await createReimbs(payload, ticket)
     const images = await createImages(payload, ticket)
-    
+
     if (ticket && reimbursements) {
         const responseTicket: Ticket = {
             id: ticket.id,
@@ -95,9 +128,22 @@ export const createTicket = async (payload: PayloadTicket) => {
             remarks: [],
             images: images,
             balance: null,
-            hasHardcopy: ticket.hasHardcopy 
+            hasHardcopy: ticket.hasHardcopy
         }
-        
+
+        const email = await prisma.user.findUnique({
+            where: {
+                id: ticket.creatorId
+            },
+            select: {
+                email: true
+            }
+        })
+
+        if (email) {
+            sendEmail(ticket.crf, email.email)
+        }
+
         await prisma.$disconnect()
         return responseTicket
     }

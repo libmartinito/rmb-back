@@ -83,47 +83,47 @@ const sendEmail = (payload: {
         finance: 'feu.finac@gmail.com'
     }
 
-    const mailOptions = {
+    let mailOptions = {
         from: process.env.EMAIL,
         to: '',
         subject: `Reimbursement ${crf} Update`,
         html: ''
     }
 
-    if (department === 'MA') {
-        mailOptions.to = adminEmails.director.MA
-    } else if (department === 'CS') {
-        mailOptions.to = adminEmails.director.CS
-    } else if (department === 'IT') {
-        mailOptions.to = adminEmails.director.IT
-    } else if (department === 'CpE') {
-        mailOptions.to = adminEmails.director.CpE
-    } else if (department === 'ME') {
-        mailOptions.to = adminEmails.director.ME
-    } else if (department === 'CE') {
-        mailOptions.to = adminEmails.director.CE
-    } else if (department === 'EE') {
-        mailOptions.to = adminEmails.director.EE
-    } else if (department === 'HSC') {
-        mailOptions.to = adminEmails.director.HSC
-    } else if (department === 'MPS') {
-        mailOptions.to = adminEmails.director.MPS
-    } else if (department === 'NA') {
-        if (actionBy === 'sdirector') {
-            mailOptions.to = adminEmails.sdirector
-        } else if (actionBy === 'hsu') {
-            mailOptions.to = adminEmails.hsu
-        } else if (actionBy === 'hr') {
-            mailOptions.to = adminEmails.hr
-        } else if (actionBy === 'sdas') {
-            mailOptions.to = adminEmails.sdas
-        } else if (actionBy === 'user') {
-            mailOptions.to = email 
-        } else if (actionBy === 'finance') {
-            mailOptions.to = adminEmails.finance
-        } else if (actionBy === 'none') {
-            mailOptions.to = email
+    if (actionBy === 'director') {
+        if (department === 'MA') {
+            mailOptions.to = adminEmails.director.MA
+        } else if (department === 'CS') {
+            mailOptions.to = adminEmails.director.CS
+        } else if (department === 'IT') {
+            mailOptions.to = adminEmails.director.IT
+        } else if (department === 'CpE') {
+            mailOptions.to = adminEmails.director.CpE
+        } else if (department === 'ME') {
+            mailOptions.to = adminEmails.director.ME
+        } else if (department === 'CE') {
+            mailOptions.to = adminEmails.director.CE
+        } else if (department === 'EE') {
+            mailOptions.to = adminEmails.director.EE
+        } else if (department === 'HSC') {
+            mailOptions.to = adminEmails.director.HSC
+        } else if (department === 'MPS') {
+            mailOptions.to = adminEmails.director.MPS
         }
+    } else if (actionBy === 'sdirector') {
+        mailOptions.to = adminEmails.sdirector
+    } else if (actionBy === 'hsu') {
+        mailOptions.to = adminEmails.hsu
+    } else if (actionBy === 'hr') {
+        mailOptions.to = adminEmails.hr
+    } else if (actionBy === 'sdas') {
+        mailOptions.to = adminEmails.sdas
+    } else if (actionBy === 'user') {
+        mailOptions.to = email
+    } else if (actionBy === 'finance') {
+        mailOptions.to = adminEmails.finance
+    } else if (actionBy === 'none') {
+        mailOptions.to = email
     }
 
     if (actionBy === 'none') {
@@ -136,15 +136,37 @@ const sendEmail = (payload: {
         mailOptions.html = message.clientActionBody
     }
 
+    console.log(mailOptions)
+
     if (actionBy === 'none' || actionBy === 'user') {
-        transporter.sendMail(mailOptions)
+        console.log("first")
+        transporter.sendMail(mailOptions, function (err, info) {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(info)
+            }
+        })
     } else {
+        console.log("second")
         mailOptions.html = message.adminActionBody
-        transporter.sendMail(mailOptions)
+        transporter.sendMail(mailOptions, function (err, info) {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(info)
+            }
+        })
 
         mailOptions.html = message.clientUpdateBody
         mailOptions.to = email
-        transporter.sendMail(mailOptions)
+        transporter.sendMail(mailOptions, function (err, info) {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(info)
+            }
+        })
     }
 }
 
@@ -188,9 +210,9 @@ export const updateTicket = async (payload: UpdatePayload) => {
     const roles = ['director', 'sdirector', 'hsu', 'hr', 'sdas', 'user', 'finance']
     const rolesTitleCase = ['Director', 'Senior Director', 'HSU', 'HR', 'SDAS', 'User', 'Finance']
     const roleIndex = roles.indexOf(actionBy)
-    roleTitle = rolesTitleCase[roleIndex] 
+    roleTitle = rolesTitleCase[roleIndex]
 
-    // Send email if the ticket requires action from user
+    // Send email after ticket update 
     const emailPayload = {
         actionBy: actionBy,
         roleTitle: roleTitle,
@@ -200,9 +222,8 @@ export const updateTicket = async (payload: UpdatePayload) => {
         crf: crf
     }
 
-    if (actionBy === 'user') {
-        sendEmail(emailPayload)
-    }
+    console.log(emailPayload)
+    sendEmail(emailPayload)
 
     // Update changes to reimbursements
     for (let i = 0; i < reimbursements.length; i++) {
