@@ -32,7 +32,7 @@ router.get("/api/tickets/:ticketcrf", auth, ticketsController.getOne)
 // Route for an admin updating a ticket
 router.patch("/api/tickets/admin/:ticketcrf", auth, ticketsController.updateOne)
 // Route for a user updating a ticket
-router.patch("/api/tickets/user/:ticketcrf", auth, ticketsController.updateHardcopy)
+router.patch("/api/tickets/user/:ticketcrf", auth, ticketsController.updateCopy)
 // Route for uploading images
 router.post("/api/upload", auth, uploadsController.multipleUpload)
 

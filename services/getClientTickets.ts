@@ -81,7 +81,7 @@ const getPendingAdminTickets = async (role: string) => {
 }
 
 const getCompletedAdminTickets = async (role: string) => {
-    const roles = ["director", "hsu", "hr", "sdas", "user", "finance", "none"]
+    const roles = ["director", "sdirector", "hsu", "hr", "sdas", "user", "finance", "none"]
     const roleIndex = roles.indexOf(role)
     roles.splice(0, roleIndex + 1)
 

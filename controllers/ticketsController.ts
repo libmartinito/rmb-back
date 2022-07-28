@@ -9,6 +9,7 @@ import { getClientTickets } from "../services/getClientTickets"
 import { getAllTickets } from "../services/getAllTickets"
 import { getTicket } from "../services/getTicket"
 import { updateTicket } from "../services/updateTicket"
+import { updateHardcopy } from "../services/updateHardcopy"
 
 const prisma = new PrismaClient()
 
@@ -77,7 +78,7 @@ export const updateOne = async (req: Request, res: Response) => {
     }
 }
 
-export const updateHardcopy = async (req: Request, res: Response) => {
+export const updateCopy = async (req: Request, res: Response) => {
     try {
         const payload = req.body
         const ticket = await updateTicket(payload)
