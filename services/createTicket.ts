@@ -77,7 +77,7 @@ const createImages = async (payload: PayloadTicket, ticket: ResTicket) => {
 }
 
 // Send an email
-const sendEmail = (crf: number, email: string) => {
+const sendEmail = (crf: number, email: string, actionBy: null | string = null, department: null | string = null) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -86,15 +86,28 @@ const sendEmail = (crf: number, email: string) => {
         }
     })
 
+    const directorEmail: {[key: string]: string} = {
+        "Multimedia Arts": "feu.madirector@gmail.com",
+        "Computer Science": "feu.csdirector@gmail.com",
+        "Information Technology": "feu.itdirector@gmail.com",
+        "Computer Engineering": "feu.cpedirector@gmail.com",
+        "Mechanical Engineering": "feu.medirector@gmail.com",
+        "Civil Engineering": "feu.cedirector@gmail.com",
+        "Electronics and Electrical Engineering": "feu.eedirector@gmail.com",
+        "Mathematics and Physical Sciences": "feu.mpsdirector@gmail.com",
+        "Humanities, Social Sciences, and Communication": "feu.hscdirector@gmail.com"
+    }
+
     const message = {
-        body: "This is to let you know that your ticket is now under review by the director."
+        adminBody: "This is to let you know that a new ticket with the crf number shown above requires your attention.",
+        clientBody: "This is to let you know that your ticket is now under review by the director."
     }
 
     const mailOptions = {
         from: process.env.EMAIL,
         to: email,
         subject: `Reimbursement ${crf} Update`,
-        html: message.body
+        html: message.clientBody
     }
 
     transporter.sendMail(mailOptions, function (err, info) {
@@ -104,6 +117,20 @@ const sendEmail = (crf: number, email: string) => {
             console.log(info)
         }
     })
+
+    if (actionBy === 'director') {
+        if (department) {
+            mailOptions.to = directorEmail[department]
+            mailOptions.html = message.adminBody
+        }
+        transporter.sendMail(mailOptions, function (err, info) {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(info)
+            }
+        })
+    }
 }
 
 // Respond with the full ticket and send email update
@@ -141,7 +168,7 @@ export const createTicket = async (payload: PayloadTicket) => {
         })
 
         if (email) {
-            sendEmail(ticket.crf, email.email)
+            sendEmail(ticket.crf, email.email, ticket.actionBy, ticket.department)
         }
 
         await prisma.$disconnect()
