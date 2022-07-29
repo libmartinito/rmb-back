@@ -81,7 +81,7 @@ export const updateOne = async (req: Request, res: Response) => {
 export const updateCopy = async (req: Request, res: Response) => {
     try {
         const payload = req.body
-        const ticket = await updateTicket(payload)
+        const ticket = await updateHardcopy(payload)
         res.status(200).send(ticket)
     } catch(e: any) {
         res.status(500).send(e.message)
