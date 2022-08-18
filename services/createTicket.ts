@@ -77,7 +77,7 @@ const createImages = async (payload: PayloadTicket, ticket: ResTicket) => {
 }
 
 // Send an email
-const sendEmail = (crf: number, email: string, actionBy: null | string = null, department: null | string = null) => {
+const sendEmail = (crf: number, email: string, actionBy: null | string = null, department: null | string = null, firstName: null | string = null, reimbursements: null | Reimbursement[] = null) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -98,9 +98,16 @@ const sendEmail = (crf: number, email: string, actionBy: null | string = null, d
         "Humanities, Social Sciences, and Communication": "feu.hscdirector@gmail.com"
     }
 
+    let reimbursementString = ''
+    reimbursements?.forEach(reimbursement => {
+        reimbursementString += reimbursement.expenseNature
+        reimbursementString += ' (To be reviewed)'
+        reimbursementString += '<br\/>'
+    })
+
     const message = {
-        adminBody: "This is to let you know that a new ticket with the crf number shown above requires your attention.",
-        clientBody: "This is to let you know that your ticket is now under review by the director."
+        adminBody: `Good day, ${department} Director<br\/><br\/>This email is to inform you that the ticket with CRF number ${crf} is requiring your immediate action.<br\/><br\/>You can also visit and login on our <a href='http://159.223.45.163'>website</a> for more information.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.</i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        clientBody: `Good day, ${firstName}<br\/><br\/>Thank you for using the Online Reimbursement System. The ${department?.toLowerCase()} director is now currently working on your ticket with CRF number ${crf}. A list of information about the progress regarding your reimbursement items will be shown below.<br\/><br\/>${reimbursementString}<br\/>You can also visit and login on our <a href='http://159.223.45.163'>website</a> for more information. Thank you for your patience.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.</i><br\/><br\/>Thanks,<br\/>RNV e-support`
     }
 
     const mailOptions = {
@@ -167,8 +174,17 @@ export const createTicket = async (payload: PayloadTicket) => {
             }
         })
 
+        const firstName = await prisma.user.findUnique({
+            where: {
+                id: ticket.creatorId
+            },
+            select: {
+                firstName: true
+            }
+        })
+
         if (email) {
-            sendEmail(ticket.crf, email.email, ticket.actionBy, ticket.department)
+            sendEmail(ticket.crf, email.email, ticket.actionBy, ticket.department, firstName?.firstName, reimbursements)
         }
 
         await prisma.$disconnect()

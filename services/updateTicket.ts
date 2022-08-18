@@ -3,10 +3,9 @@
  */
 
 import { PrismaClient } from "@prisma/client"
-import { UpdatePayload } from "../types"
+import { Reimbursement, UpdatePayload } from "../types"
 import * as dotenv from "dotenv"
 import nodemailer from "nodemailer"
-import { response } from "express"
 
 dotenv.config()
 /**
@@ -21,7 +20,9 @@ const sendEmail = (payload: {
     roleTitle: string,
     email: string,
     status: string,
-    crf: number
+    crf: number,
+    firstName: string
+    reimbursements: Reimbursement[]
 }) => {
 
     const actionBy = payload.actionBy
@@ -30,6 +31,8 @@ const sendEmail = (payload: {
     const email = payload.email
     const status = payload.status
     const crf = payload.crf
+    const firstName = payload.firstName
+    const reimbursements = payload.reimbursements
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -39,12 +42,57 @@ const sendEmail = (payload: {
         }
     })
 
+    let updatedDepartment = ''
+    if (actionBy === 'director') {
+        if (department === 'MA') {
+            updatedDepartment = 'multimedia arts director'
+        } else if (department === 'CS') {
+            updatedDepartment = 'computer science director'
+        } else if (department === 'IT') {
+            updatedDepartment = 'information technology director'
+        } else if (department === 'CpE') {
+            updatedDepartment = 'computer engineering director'
+        } else if (department === 'ME') {
+            updatedDepartment = 'mechanical engineering director'
+        } else if (department === 'CE') {
+            updatedDepartment = 'civil engineering director'
+        } else if (department === 'EE') {
+            updatedDepartment = 'electronics and electrical engineering director'
+        } else if (department === 'HSC') {
+            updatedDepartment = 'humanities and social sciences director'
+        } else if (department === 'MPS') {
+            updatedDepartment = 'mathematics and physical sciences director'
+        }
+    } else if (actionBy === 'sdirector') {
+        updatedDepartment = 'college of computer sciences senior director'
+    } else if (actionBy === 'hsu') {
+        updatedDepartment = 'health and services unit department'
+    } else if (actionBy === 'hr') {
+        updatedDepartment = 'human resources department'
+    } else if (actionBy === 'sdas') {
+        updatedDepartment = 'senior director for academic services'
+    } else if (actionBy === 'finance') {
+        updatedDepartment = 'finance department'
+    }
+
+    let reimbursementString = ''
+    reimbursements.forEach(reimbursement => {
+        reimbursementString += reimbursement.expenseNature
+        if (reimbursement.approved) {
+            reimbursementString += ' (Approved)'
+        } else {
+            reimbursementString += ' (Rejected)'
+        }
+        reimbursementString += '<br\/>'
+    })
     const message = {
-        adminActionBody: "This is to let you know that a new ticket with the crf number shown above requires your attention.",
-        clientUpdateBody: `This is to let you know that your ticket is now under review by the ${roleTitle}`,
-        clientCompletedBody: "This is to let you know that your ticket has completed the review process and has been approved.",
-        clientRejectedBody: "This is to let you konw that your ticket has completed the review process and has been rejected.",
-        clientActionBody: "This is to let you know that you have a week to submit the hardcopy of receipts/prescriptions for the ticket shown above."
+        financeActionBodyBefore: `Good day, finance department<br\/><br\/>This email will serve as an update to the ticket with CRF number ${crf}. ${firstName} must provide a hardcopy of the prescriptions within 7 days only. Otherwise, the ticket will not proceed and will automatically be rejected.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        financeActionBodyAfter: `Good day, finance department<br\/><br\/>This will serve as an update to the ticket with CRF number ${crf}. By this time, ${firstName} has already provided a hardcopy of the prescriptions. Thet ticket is requiring your immediate action.<br\/><br\/>You can also login on our <a href='http://159.223.45.163'>website<\/a> for more information.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/a><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        adminActionBody: `Good day, ${updatedDepartment}<br\/><br\/>This email is to inform you that the ticket with a CRF number of ${crf} is requiring your immediate action.<br\/><br\/>You can also visit and login on our <a href='http://159.223.45.163'>website<\/a> for more information.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply</i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        clientUpdateBody: `Good day, ${firstName}<br\/><br\/>Thank you for using the Online Reimbursement System. The ${updatedDepartment} is now currently working on your ticket with CRF number ${crf}. A list of information on the progress regarding your reimbursements will be shown below.<br\/><br\/>${reimbursementString}<br\/>You can also visit and login on our <a href='http://159.223.45.163'>website<\/a> for more information. Thank you for your patience.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        clientCompletedBody: `Good day, ${firstName}<br\/><br\/>Thank you for using the Online Reimbursement System. Your ticket with CRF number ${crf} is now completed. You may now proceed to the Finance Department for verification of your Medical Reimbursement. A list of your reimbursements are shown below. ${reimbursementString}<br\/>You can also visit and login on our <a href='http://159.223.45.163'>website<\/a> for more information. Thank you for your patience.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        clientRejectedBody: `Good day, ${firstName}<br\/><br\/>Thank you for using the Online Reimbursement System. Your ticket with CRF number ${crf} is rejected.<br\/><br\/>${reimbursementString}<br\/>You can also visit and login on our <a href='http://159.223.45.163'>website<\/a> for more information. Thank you for your patience.<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/i><br\/><br\/>Thanks,<br\/>RNV e-support`,
+        clientActionBody: `Good day, ${firstName}<br\/><br\/>Thank you for using the Online Reimbursement System. Your ticket with CRF number ${crf} is still in progress. However, we kindly ask that you provide a <u>hard copy of the prescriptions<\/u> immediately. Please take note that you have only 7 days to provide the prescriptions to the Fiannce Department. Otherwise, your ticket will be automatically rejected.<br\/><br\/>Upon complying with the requirements, you may now proceed to our website.<br\/><br\/>Visit our <a href='http://159.223.45.163'>website<\/a>.<br\/>Verify your ticket on the \"Pending Ticket\" tab menu.<br\/>\"Click the box\" if you already complied with the requirements.<br\/>Click the \"save button.\"<br\/><br\/><i>Please note that this is an auto-generated email. Please do not reply.<\/i><br\/><br\/>Thanks,<br\/>RNV e-support`
     }
 
     const adminEmails: {
@@ -127,7 +175,7 @@ const sendEmail = (payload: {
     }
 
     if (actionBy === 'none') {
-        if (status === 'Rejected') {
+        if (status.includes('Rejected')) {
             mailOptions.html = message.clientRejectedBody
         } else if (status === 'Completed') {
             mailOptions.html = message.clientCompletedBody
@@ -136,10 +184,8 @@ const sendEmail = (payload: {
         mailOptions.html = message.clientActionBody
     }
 
-    console.log(mailOptions)
 
     if (actionBy === 'none' || actionBy === 'user') {
-        console.log("first")
         transporter.sendMail(mailOptions, function (err, info) {
             if (err) {
                 console.log(err)
@@ -147,16 +193,37 @@ const sendEmail = (payload: {
                 console.log(info)
             }
         })
+        if (actionBy === 'user') {
+            mailOptions.html = message.financeActionBodyBefore
+            mailOptions.to = adminEmails.finance
+            transporter.sendMail(mailOptions, function (err, info) {
+                if (err) {
+                    console.log(err)
+                } else {
+                    console.log(info)
+                }
+            })
+        }
     } else {
-        console.log("second")
-        mailOptions.html = message.adminActionBody
-        transporter.sendMail(mailOptions, function (err, info) {
-            if (err) {
-                console.log(err)
-            } else {
-                console.log(info)
-            }
-        })
+        if (actionBy === 'finance') {
+            mailOptions.html = message.financeActionBodyAfter
+            transporter.sendMail(mailOptions, function (err, info) {
+                if (err) {
+                    console.log(err)
+                } else {
+                    console.log(info)
+                }
+            })
+        } else {
+            mailOptions.html = message.adminActionBody
+            transporter.sendMail(mailOptions, function (err, info) {
+                if (err) {
+                    console.log(err)
+                } else {
+                    console.log(info)
+                }
+            })
+        }
 
         mailOptions.html = message.clientUpdateBody
         mailOptions.to = email
@@ -208,9 +275,18 @@ export const updateTicket = async (payload: UpdatePayload) => {
 
     let roleTitle = ''
     const roles = ['director', 'sdirector', 'hsu', 'hr', 'sdas', 'user', 'finance']
-    const rolesTitleCase = ['Director', 'Senior Director', 'HSU', 'HR', 'SDAS', 'User', 'Finance']
+    const rolesTitleCase = ['director', 'senior director', 'HSU', 'HR', 'SDAS', 'user', 'finance']
     const roleIndex = roles.indexOf(actionBy)
     roleTitle = rolesTitleCase[roleIndex]
+
+    const firstName = await prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            firstName: true
+        }
+    })
 
     // Send email after ticket update 
     const emailPayload = {
@@ -219,10 +295,11 @@ export const updateTicket = async (payload: UpdatePayload) => {
         department: department,
         email: email,
         status: status,
-        crf: crf
+        crf: crf,
+        firstName: firstName?.firstName as string,
+        reimbursements: reimbursements
     }
 
-    console.log(emailPayload)
     sendEmail(emailPayload)
 
     // Update changes to reimbursements

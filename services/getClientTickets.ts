@@ -15,7 +15,7 @@ const prisma = new PrismaClient()
 const getPendingClientTickets = async (id: number) => {
     const tickets = await prisma.ticket.findMany({
         orderBy: {
-            id: "asc"
+            id: "desc"
         },        
         where: {
             creatorId: id,
@@ -39,7 +39,7 @@ const getPendingClientTickets = async (id: number) => {
 const getCompletedClientTickets = async (id: number) => {
     const tickets = await prisma.ticket.findMany({
         orderBy: {
-            id: "asc"
+            id: "desc"
         },
         where: {
             creatorId: id,
@@ -63,7 +63,7 @@ const getCompletedClientTickets = async (id: number) => {
 const getPendingAdminTickets = async (role: string) => {
     const tickets = await prisma.ticket.findMany({
         orderBy: {
-            id: "asc"
+            id: "desc"
         },
         where: {
             actionBy: role,
@@ -90,7 +90,7 @@ const getCompletedAdminTickets = async (role: string) => {
     for (let i = 0; i < roles.length; i++) {
         const tickets = await prisma.ticket.findMany({
             orderBy: {
-                id: "asc"
+                id: "desc"
             },
             where: {
                 actionBy: roles[i],
