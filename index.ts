@@ -14,12 +14,13 @@ dotenv.config()
 /**
  * App Variables 
  */
+let PORT: number
 
 if (!process.env.PORT) {
-    process.exit(1)
+    PORT = 3000
+} else {
+    PORT = parseInt(process.env.PORT as string, 10)
 }
-
-const PORT: number = parseInt(process.env.PORT as string, 10);
 
 const app = express()
 
